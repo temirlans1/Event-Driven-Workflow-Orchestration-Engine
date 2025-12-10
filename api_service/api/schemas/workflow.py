@@ -1,20 +1,18 @@
-from typing import Optional
-
 from pydantic import BaseModel
+from typing import List, Optional, Dict
 
 
 class Node(BaseModel):
     id: str
     handler: str
-    dependencies: list[str]
-    config: Optional[dict] = {}
+    dependencies: List[str]
+    config: Optional[Dict] = {}
 
 
 class DAG(BaseModel):
-    nodes: list[Node]
+    nodes: List[Node]
 
 
 class WorkflowRequest(BaseModel):
     name: str
     dag: DAG
-

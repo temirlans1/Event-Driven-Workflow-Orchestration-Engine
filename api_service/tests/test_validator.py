@@ -1,6 +1,6 @@
 import pytest
 from core.validator import validate_workflow
-from core.models import Node
+from api.schemas.workflow import Node
 
 
 def test_valid_dag():
@@ -9,7 +9,7 @@ def test_valid_dag():
         Node(id="B", handler="service", dependencies=["A"]),
         Node(id="C", handler="output", dependencies=["B"]),
     ]
-    validate_workflow(nodes)  # Should not raise
+    validate_workflow(nodes)
 
 
 def test_duplicate_node_ids():
@@ -26,7 +26,7 @@ def test_invalid_dependency():
         Node(id="A", handler="input", dependencies=["B"]),
         Node(id="C", handler="output", dependencies=[]),
     ]
-    with pytest.raises(ValueError, match="Dependency B not found"):
+    with pytest.raises(ValueError, match="Invalid dependency: B"):
         validate_workflow(nodes)
 
 

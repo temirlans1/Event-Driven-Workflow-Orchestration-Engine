@@ -1,4 +1,4 @@
-from core.models import Node
+from api.schemas.workflow import Node
 
 
 def validate_workflow(nodes: list[Node]) -> None:
@@ -14,7 +14,7 @@ def validate_workflow(nodes: list[Node]) -> None:
     for node in nodes:
         for dep in node.dependencies:
             if dep not in graph:
-                raise ValueError(f"Dependency {dep} not found in nodes")
+                raise ValueError(f"Invalid dependency: {dep}")
 
     if has_cycle(graph):
         raise ValueError("Workflow DAG contains a cycle")

@@ -1,6 +1,6 @@
 import redis
 import json
-from core.orchestrator_trigger import get_ready_nodes, trigger_workflow_execution
+from core.orchestrator import trigger_workflow_execution, get_ready_nodes
 
 r = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
