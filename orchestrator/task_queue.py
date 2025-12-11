@@ -5,6 +5,7 @@ STREAM_NAME = "workflow:tasks"
 
 
 def push_task(execution_id: str, node_id: str, payload: dict):
+    """Push a serialized task message onto the workflow stream."""
     redis_client.xadd(STREAM_NAME, {
         "execution_id": execution_id,
         "node_id": node_id,

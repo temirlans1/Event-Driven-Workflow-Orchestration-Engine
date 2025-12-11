@@ -4,6 +4,7 @@ from api.schemas.workflow import Node
 
 
 def validate_workflow(nodes: list[Node]) -> None:
+    """Validate workflow nodes for duplicate IDs, missing deps, and cycles."""
     node_ids = set()
     graph: dict[str, list[str]] = {}
 
@@ -23,11 +24,13 @@ def validate_workflow(nodes: list[Node]) -> None:
 
 
 def has_cycle(graph: dict[str, list[str]]) -> bool:
+    """Return True if the directed graph contains a cycle."""
     normalized = defaultdict(list, graph)
     visited = set()
     rec_stack = set()
 
     def visit(node: str) -> bool:
+        """Depth-first traversal helper used for cycle detection."""
         if node in rec_stack:
             return True
         if node in visited:

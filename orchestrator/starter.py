@@ -15,11 +15,13 @@ WORKFLOW_KEY_PATTERN = re.compile(r"^workflow:([a-f0-9\-]+)$")
 
 
 def discover_active_workflow_ids() -> list[str]:
+    """Return all execution IDs currently tracked as active in Redis."""
     ids = redis_client.smembers("workflows:active")
     return [id.decode() if isinstance(id, bytes) else id for id in ids]
 
 
 def workflow_is_complete(execution_id: str) -> bool:
+    """Determine whether a workflow has reached a terminal state."""
     workflow = load_workflow(execution_id)
 
     has_failed_node = False
@@ -56,6 +58,11 @@ def check_completion(execution_id: str) -> bool:
 
 
 def main_loop(sleep_seconds: int = 5):
+    """Continuously schedule workflows, dispatching eligible tasks in a loop.
+
+    Args:
+        sleep_seconds: Delay between scheduler iterations.
+    """
     logger.info("[starter] Starting orchestrator scheduler loop...")
 
     while True:
