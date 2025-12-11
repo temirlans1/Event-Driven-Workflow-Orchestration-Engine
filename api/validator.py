@@ -8,6 +8,7 @@ logger = get_logger(__name__)
 
 
 def validate_workflow(nodes: list[Node]) -> None:
+    """Validate workflow nodes for duplicate IDs, missing deps, and cycles."""
     logger.info("Validating workflow with %d nodes", len(nodes))
     node_ids = set()
     graph: dict[str, list[str]] = {}
@@ -33,12 +34,14 @@ def validate_workflow(nodes: list[Node]) -> None:
 
 
 def has_cycle(graph: dict[str, list[str]]) -> bool:
+    """Return True if the directed graph contains a cycle."""
     logger.info("Checking workflow DAG for cycles")
     normalized = defaultdict(list, graph)
     visited = set()
     rec_stack = set()
 
     def visit(node: str) -> bool:
+        """Depth-first traversal helper used for cycle detection."""
         logger.info("Visiting node %s for cycle detection", node)
         if node in rec_stack:
             logger.info("Cycle detected via node %s", node)

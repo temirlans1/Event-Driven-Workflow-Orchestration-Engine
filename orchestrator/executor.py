@@ -10,6 +10,15 @@ logger = get_logger(__name__)
 
 
 def execute_workflow(execution_id: str):
+    """Dispatch tasks for a workflow whose dependencies are satisfied.
+
+    The function loads the workflow DAG for the provided execution ID, checks
+    the status of each node, and pushes runnable tasks onto the task queue.
+    Nodes are marked as queued once scheduled.
+
+    Args:
+        execution_id: Unique identifier for the workflow execution.
+    """
     logger.info("Executing workflow %s", execution_id)
     workflow = load_workflow(execution_id)
     for node in workflow.nodes:

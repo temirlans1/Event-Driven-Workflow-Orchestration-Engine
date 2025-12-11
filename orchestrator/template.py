@@ -10,6 +10,7 @@ logger = get_logger(__name__)
 
 
 def resolve_templates(execution_id: str, config: dict) -> dict:
+    """Resolve templated values in a node's config using upstream outputs."""
     logger.info("Resolving templates for execution_id=%s", execution_id)
     resolved = {}
 

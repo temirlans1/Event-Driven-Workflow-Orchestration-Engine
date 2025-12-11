@@ -9,6 +9,7 @@ logger = get_logger(__name__)
 
 
 def push_task(execution_id: str, node_id: str, payload: dict):
+    """Push a serialized task message onto the workflow stream."""
     logger.info(
         "Queueing task for execution_id=%s node_id=%s with payload keys=%s",
         execution_id,

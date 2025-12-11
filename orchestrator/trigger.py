@@ -7,6 +7,7 @@ logger = get_logger(__name__)
 
 
 def trigger_workflow_execution(execution_id: str):
+    """Kick off a workflow and track it as active in Redis."""
     logger.info("Triggering workflow execution for %s", execution_id)
     execute_workflow(execution_id)
     redis_client.sadd("workflows:active", execution_id)

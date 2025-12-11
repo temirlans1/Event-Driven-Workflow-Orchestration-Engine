@@ -15,6 +15,7 @@ logger = get_logger(__name__)
 
 
 def ensure_group_exists():
+    """Create the Redis consumer group for the worker stream if absent."""
     logger.info("Ensuring consumer group %s exists for stream %s", GROUP, STREAM)
     try:
         redis_client.xgroup_create(STREAM, GROUP, id="0", mkstream=True)
@@ -27,6 +28,7 @@ def ensure_group_exists():
 
 
 def process_message(msg_id, fields):
+    """Handle a single stream message and execute its handler."""
     logger.info("Processing message %s with fields %s", msg_id, list(fields.keys()))
     execution_id = fields["execution_id"]
     node_id = fields["node_id"]
@@ -57,6 +59,7 @@ def process_message(msg_id, fields):
 
 
 def run_worker():
+    """Main worker loop: read tasks, execute handlers, and acknowledge."""
     logger.info("Starting worker consumer loop")
     ensure_group_exists()
 
