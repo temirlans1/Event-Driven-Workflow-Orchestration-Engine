@@ -1,6 +1,5 @@
 from orchestrator.models import NodeStatus
 from orchestrator.state import get_node_output, get_node_status
-from orchestrator.task_queue import STREAM_NAME
 from workers import worker
 from clients.redis_client import redis_client
 
@@ -12,14 +11,14 @@ def _register_workflow(client, workflow: dict) -> str:
 
 
 def _fetch_tasks():
-    return redis_client._redis.xrange(STREAM_NAME, min="-", max="+")
+    return redis_client._redis.xrange(worker.STREAM, min="-", max="+")
 
 
 def _process_all_tasks():
     tasks = _fetch_tasks()
     for msg_id, fields in tasks:
         worker.process_message(msg_id, fields)
-        redis_client._redis.xdel(STREAM_NAME, msg_id)
+        redis_client._redis.xdel(worker.STREAM, msg_id)
     return len(tasks)
 
 
