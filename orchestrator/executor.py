@@ -1,3 +1,4 @@
+from logging_config import get_logger
 from orchestrator.loader import load_workflow
 from orchestrator.models import NodeStatus
 from orchestrator.state import get_node_status, all_dependencies_succeeded, set_node_status
@@ -5,7 +6,11 @@ from orchestrator.task_queue import push_task
 from orchestrator.template import resolve_templates
 
 
+logger = get_logger(__name__)
+
+
 def execute_workflow(execution_id: str):
+    logger.info("Executing workflow %s", execution_id)
     workflow = load_workflow(execution_id)
     for node in workflow.nodes:
         try:
@@ -16,6 +21,7 @@ def execute_workflow(execution_id: str):
             status = NodeStatus.PENDING
 
         if status == NodeStatus.PENDING and all_dependencies_succeeded(execution_id, node.dependencies):
+            logger.info("Scheduling node %s for execution_id=%s", node.id, execution_id)
             inputs = resolve_templates(execution_id, node.config)
             set_node_status(execution_id, node.id, NodeStatus.QUEUED)
             push_task(
@@ -25,4 +31,11 @@ def execute_workflow(execution_id: str):
                     "handler": node.handler,
                     "config": inputs
                 }
+            )
+        else:
+            logger.info(
+                "Skipping node %s for execution_id=%s (status=%s or dependencies incomplete)",
+                node.id,
+                execution_id,
+                status,
             )

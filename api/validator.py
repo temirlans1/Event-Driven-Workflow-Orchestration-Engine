@@ -1,14 +1,20 @@
 from collections import defaultdict
+from logging_config import get_logger
 
 from api.schemas.workflow import Node
 
 
+logger = get_logger(__name__)
+
+
 def validate_workflow(nodes: list[Node]) -> None:
+    logger.info("Validating workflow with %d nodes", len(nodes))
     node_ids = set()
     graph: dict[str, list[str]] = {}
 
     for node in nodes:
         if node.id in node_ids:
+            logger.error("Duplicate node id detected: %s", node.id)
             raise ValueError(f"Duplicate node ID: {node.id}")
         node_ids.add(node.id)
         graph[node.id] = node.dependencies
@@ -16,19 +22,26 @@ def validate_workflow(nodes: list[Node]) -> None:
     for node in nodes:
         for dep in node.dependencies:
             if dep not in graph:
+                logger.error("Invalid dependency %s referenced by node %s", dep, node.id)
                 raise ValueError(f"Invalid dependency: {dep}")
 
     if has_cycle(graph):
+        logger.error("Workflow DAG contains a cycle")
         raise ValueError("Workflow DAG contains a cycle")
+
+    logger.info("Workflow validation succeeded")
 
 
 def has_cycle(graph: dict[str, list[str]]) -> bool:
+    logger.info("Checking workflow DAG for cycles")
     normalized = defaultdict(list, graph)
     visited = set()
     rec_stack = set()
 
     def visit(node: str) -> bool:
+        logger.info("Visiting node %s for cycle detection", node)
         if node in rec_stack:
+            logger.info("Cycle detected via node %s", node)
             return True
         if node in visited:
             return False
@@ -44,4 +57,5 @@ def has_cycle(graph: dict[str, list[str]]) -> bool:
     for node in normalized:
         if node not in visited and visit(node):
             return True
+    logger.info("No cycles detected in workflow DAG")
     return False
