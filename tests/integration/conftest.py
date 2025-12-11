@@ -1,12 +1,16 @@
 import pytest
-from redis.exceptions import ConnectionError
+from fastapi.testclient import TestClient
 
 from clients.redis_client import redis_client
 
 
+@pytest.fixture(scope="session")
+def client():
+    from main import app
+
+    return TestClient(app)
+
+
 @pytest.fixture(autouse=True)
 def flush_redis():
-    try:
-        redis_client.flush()
-    except ConnectionError as exc:
-        pytest.skip(f"Redis is not available: {exc}")
+    redis_client.flush()
