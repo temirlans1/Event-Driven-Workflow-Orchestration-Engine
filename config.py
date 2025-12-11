@@ -1,3 +1,5 @@
+import socket
+
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
@@ -11,6 +13,11 @@ class Settings(BaseSettings):
     # Optional app-wide settings
     ENVIRONMENT: str = Field(default="development", validation_alias="ENVIRONMENT")
     DEBUG: bool = Field(default=True, validation_alias="DEBUG")
+
+    # Workers configuration
+    STREAM: str = Field(default="workflow:tasks", validation_alias="WORKER_STREAM")
+    GROUP: str = Field(default="workflow_group", validation_alias="WORKER_GROUP")
+    CONSUMER: str = f"worker-{socket.gethostname()}"
 
     model_config = {
         "populate_by_name": True

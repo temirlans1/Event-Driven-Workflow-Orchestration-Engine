@@ -1,17 +1,16 @@
 import time
 import json
-import os
-import socket
 from redis.exceptions import ConnectionError
 from logging_config import get_logger
 from clients.redis_client import redis_client
 from orchestrator.models import NodeStatus
 from orchestrator.state import set_node_status, set_node_output, get_node_status
 from workers.registry import get_handler
+from config import settings
 
-STREAM = os.getenv("WORKER_STREAM", "workflow:tasks")
-GROUP = os.getenv("WORKER_GROUP", "workflow_group")
-CONSUMER = os.getenv("WORKER_NAME") or f"worker-{socket.gethostname()}"
+STREAM = settings.STREAM
+GROUP = settings.GROUP
+CONSUMER = settings.CONSUMER
 
 logger = get_logger(__name__)
 
