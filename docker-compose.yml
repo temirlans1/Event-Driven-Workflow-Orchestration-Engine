@@ -9,12 +9,8 @@ services:
   api:
     build: .
     command: uvicorn main:app --host 0.0.0.0 --port 8000
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
-      ENVIRONMENT: production
-      DEBUG: "False"
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     depends_on:
@@ -23,24 +19,16 @@ services:
   orchestrator:
     build: .
     command: python -m orchestrator.starter
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
-      ENVIRONMENT: production
-      DEBUG: "False"
+    env_file:
+      - .env
     depends_on:
       - redis
 
   worker:
     build: .
     command: python -m workers.worker
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
-      ENVIRONMENT: production
-      DEBUG: "False"
+    env_file:
+      - .env
     depends_on:
       - redis
     restart: unless-stopped
