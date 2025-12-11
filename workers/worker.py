@@ -6,8 +6,9 @@ from clients.redis_client import redis_client
 from orchestrator.models import NodeStatus
 from orchestrator.state import set_node_status, set_node_output, get_node_status
 from workers.registry import get_handler
+from orchestrator.redis_keys import RedisKeyTemplates
 
-STREAM = "workflow:tasks"
+STREAM = RedisKeyTemplates.WORKFLOW_TASK_STREAM
 GROUP = "workflow_group"
 CONSUMER = "worker-1"
 

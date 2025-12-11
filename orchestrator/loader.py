@@ -2,6 +2,7 @@ import json
 from logging_config import get_logger
 from orchestrator.models import DAGNode, Workflow
 from clients.redis_client import redis_client
+from orchestrator.redis_keys import RedisKeyTemplates
 
 
 logger = get_logger(__name__)
@@ -20,7 +21,7 @@ def load_workflow(execution_id: str) -> Workflow:
         ValueError: If the workflow is not present in Redis.
     """
     logger.info("Loading workflow with execution_id=%s", execution_id)
-    key = f"workflow:{execution_id}"
+    key = RedisKeyTemplates.WORKFLOW.format(execution_id=execution_id)
     raw = redis_client.get(key)
     if not raw:
         logger.error("Workflow %s not found in Redis", execution_id)

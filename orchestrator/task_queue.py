@@ -1,8 +1,9 @@
 import json
 from logging_config import get_logger
 from clients.redis_client import redis_client
+from orchestrator.redis_keys import RedisKeyTemplates
 
-STREAM_NAME = "workflow:tasks"
+STREAM_NAME = RedisKeyTemplates.WORKFLOW_TASK_STREAM
 
 
 logger = get_logger(__name__)

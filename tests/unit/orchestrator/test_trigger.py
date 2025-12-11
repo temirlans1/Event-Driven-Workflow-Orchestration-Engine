@@ -5,15 +5,21 @@ from orchestrator.models import NodeStatus
 from orchestrator.trigger import trigger_workflow_execution
 from orchestrator.task_queue import STREAM_NAME
 from clients.redis_client import redis_client
+from orchestrator.redis_keys import RedisKeyTemplates
 
 
 def test_trigger_positive():
     execution_id = "t1"
-    redis_client.set(f"workflow:{execution_id}", json.dumps({
+    redis_client.set(RedisKeyTemplates.WORKFLOW.format(execution_id=execution_id), json.dumps({
         "name": "WF",
         "dag": {"nodes": [{"id": "a", "handler": "noop", "dependencies": []}]}
     }))
-    redis_client.set_json(f"workflow:{execution_id}:node:a", {"status": NodeStatus.PENDING.value})
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="a"
+        ),
+        {"status": NodeStatus.PENDING.value},
+    )
 
     trigger_workflow_execution(execution_id)
 

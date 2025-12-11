@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from orchestrator.template import resolve_templates
 from clients.redis_client import redis_client
+from orchestrator.redis_keys import RedisKeyTemplates
 
 
 @patch("orchestrator.template.get_node_output")
@@ -25,8 +26,18 @@ def test_multiple_templates_resolve():
     }
     alice_output = {"name": "Alice"}
     ben_output = {"name": "Ben"}
-    redis_client.set_json(f"workflow:{execution_id}:node:alice:output", alice_output)
-    redis_client.set_json(f"workflow:{execution_id}:node:ben:output", ben_output)
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE_OUTPUT.format(
+            execution_id=execution_id, node_id="alice"
+        ),
+        alice_output,
+    )
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE_OUTPUT.format(
+            execution_id=execution_id, node_id="ben"
+        ),
+        ben_output,
+    )
 
     resolved = resolve_templates(execution_id, config)
     assert resolved["message"] == "Alice and Ben are friends."

@@ -1,6 +1,7 @@
 import pytest
 
 from clients.redis_client import redis_client
+from orchestrator.redis_keys import RedisKeyTemplates
 from orchestrator.state import (
     set_node_status,
     get_node_status,
@@ -19,7 +20,11 @@ def test_get_node_status_raises_on_missing_node():
     node_id = "nonexistent-node"
 
     # Ensure the key does not exist
-    redis_client._redis.delete(f"workflow:{execution_id}:node:{node_id}")
+    redis_client._redis.delete(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id=node_id
+        )
+    )
 
     with pytest.raises(ValueError) as exc:
         get_node_status(execution_id, node_id)
