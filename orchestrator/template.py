@@ -1,4 +1,5 @@
 import re
+
 from orchestrator.state import get_node_output
 
 TEMPLATE_PATTERN = re.compile(r"\{\{\s*([\w_]+)\.([\w_]+)\s*\}\}")
