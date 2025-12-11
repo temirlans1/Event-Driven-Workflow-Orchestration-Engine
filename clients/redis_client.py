@@ -88,5 +88,14 @@ class RedisClient:
             else:
                 raise
 
+    def smembers(self, key: str):
+        return self._redis.smembers(key)
+
+    def sadd(self, key: str, value: str):
+        self._redis.sadd(key, value)
+
+    def srem(self, key: str, value: str):
+        self._redis.srem(key, value)
+
 
 redis_client = RedisClient()

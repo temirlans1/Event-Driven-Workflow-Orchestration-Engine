@@ -2,6 +2,25 @@ from clients.redis_client import redis_client
 from orchestrator.models import NodeStatus
 
 
+def set_workflow_status(execution_id: str, status: NodeStatus, error: str = None):
+    key = f"workflow:{execution_id}:status"
+    value = {"status": status.value}
+    if error:
+        value["error"] = error
+    redis_client.set_json(key, value)
+
+
+def get_workflow_status(execution_id: str) -> NodeStatus:
+    key = f"workflow:{execution_id}:status"
+    status = redis_client.get(key)
+    if status is None:
+        raise ValueError(f"Workflow not found for execution_id={execution_id}")
+    try:
+        return NodeStatus(status)
+    except (KeyError, ValueError):
+        raise ValueError(f"Invalid or missing status for workflow {execution_id}")
+
+
 def set_node_status(execution_id: str, node_id: str, status: NodeStatus, error: str = None):
     key = f"workflow:{execution_id}:node:{node_id}"
     value = {"status": status.value}
