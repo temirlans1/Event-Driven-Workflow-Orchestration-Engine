@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from api.schemas.workflow import Node
 
 
@@ -21,6 +23,7 @@ def validate_workflow(nodes: list[Node]) -> None:
 
 
 def has_cycle(graph: dict[str, list[str]]) -> bool:
+    normalized = defaultdict(list, graph)
     visited = set()
     rec_stack = set()
 
@@ -32,13 +35,13 @@ def has_cycle(graph: dict[str, list[str]]) -> bool:
 
         visited.add(node)
         rec_stack.add(node)
-        for neighbor in graph.get(node, []):
+        for neighbor in normalized[node]:
             if visit(neighbor):
                 return True
         rec_stack.remove(node)
         return False
 
-    for node_id in graph:
-        if visit(node_id):
+    for node in normalized:
+        if node not in visited and visit(node):
             return True
     return False

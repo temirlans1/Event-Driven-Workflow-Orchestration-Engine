@@ -1,13 +1,23 @@
 import pytest
-from core.validator import validate_workflow
+from api.validator import validate_workflow
 from api.schemas.workflow import Node
 
 
-def test_valid_dag():
+def test_valid_dag_linear():
     nodes = [
         Node(id="A", handler="input", dependencies=[]),
         Node(id="B", handler="service", dependencies=["A"]),
         Node(id="C", handler="output", dependencies=["B"]),
+    ]
+    validate_workflow(nodes)
+
+
+def test_valid_dag_fan_out_fan_in():
+    nodes = [
+        Node(id="A", handler="input", dependencies=[]),
+        Node(id="B", handler="service", dependencies=["A"]),
+        Node(id="C", handler="output", dependencies=["A"]),
+        Node(id="D", handler="output", dependencies=["B", "C"]),
     ]
     validate_workflow(nodes)
 

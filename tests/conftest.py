@@ -4,13 +4,9 @@ from fastapi.testclient import TestClient
 from clients.redis_client import redis_client
 
 
-@pytest.fixture
-def redis(request):
-    def cleanup():
-        redis_client.flush()
-
-    request.addfinalizer(cleanup)
-    return redis_client
+@pytest.fixture(autouse=True)
+def flush_redis():
+    redis_client.flush()
 
 
 @pytest.fixture(scope="function")

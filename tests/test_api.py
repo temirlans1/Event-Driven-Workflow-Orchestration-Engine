@@ -1,6 +1,9 @@
 import json
 import pytest
 
+from orchestrator.models import NodeStatus
+from clients.redis_client import redis_client
+
 VALID_WORKFLOW = {
     "name": "Test DAG",
     "dag": {
@@ -39,6 +42,7 @@ def test_submit_invalid_workflow_cycle(client):
 def test_trigger_valid_workflow(client):
     post_resp = client.post("/workflow", json=VALID_WORKFLOW)
     execution_id = post_resp.json()["execution_id"]
+    print(redis_client.get(f"workflow:{execution_id}"))
 
     response = client.post(f"/workflow/trigger/{execution_id}")
     assert response.status_code == 200
@@ -73,13 +77,13 @@ def test_get_results_before_execution(client):
     assert results.json()["results"]["task1"] == {}
 
 
-def test_get_results_after_mock_output(client, redis):
+def test_get_results_after_mock_output(client):
     post_resp = client.post("/workflow", json=VALID_WORKFLOW)
     execution_id = post_resp.json()["execution_id"]
 
     # Manually inject mock output for testing
-    redis.set(f"workflow:{execution_id}:node:task1:output", json.dumps({"value": 123}))
-    redis.set(f"workflow:{execution_id}:node:task1", "COMPLETED")
+    redis_client.set(f"workflow:{execution_id}:node:task1:output", json.dumps({"value": 123}))
+    redis_client.set(f"workflow:{execution_id}:node:task1", NodeStatus.COMPLETED.value)
 
     results = client.get(f"/workflows/{execution_id}/results")
     assert results.status_code == 200

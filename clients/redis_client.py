@@ -54,5 +54,39 @@ class RedisClient:
     def keys(self, pattern: str = "*") -> list:
         return self._redis.keys(pattern)
 
+    def xreadgroup(
+            self,
+            groupname: str,
+            consumername: str,
+            streams: dict,
+            count: int = 1,
+            block: int = 2000,
+            noack: bool = False,
+            claim_min_idle_time: Optional[int] = None,
+    ):
+        return self._redis.xreadgroup(
+            groupname=groupname,
+            consumername=consumername,
+            streams=streams,
+            count=count,
+            block=block,
+            noack=noack,
+            claim_min_idle_time=claim_min_idle_time
+        )
+
+    def xgroup_create(self, stream: str, group: str, id: str = "0", mkstream: bool = True):
+        """
+        Creates a consumer group for a stream. Does not error if group already exists.
+        """
+        try:
+            self._redis.xgroup_create(name=stream, groupname=group, id=id, mkstream=mkstream)
+            print(f"Created consumer group {group} for stream {stream}")
+        except redis.exceptions.ResponseError as e:
+            if "BUSYGROUP" in str(e):
+                # Group already exists — safe to ignore
+                print(f"Group {group} for stream {stream} already exists")
+            else:
+                raise
+
 
 redis_client = RedisClient()

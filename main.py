@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api.endpoints import workflow, workflows
+from api.routers import workflow, workflows
 from config import settings
 
 app = FastAPI(

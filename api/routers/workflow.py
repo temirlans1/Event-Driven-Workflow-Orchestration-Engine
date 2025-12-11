@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from api.schemas.workflow import WorkflowRequest
 from clients.redis_client import redis_client
-from core.validator import validate_workflow
-from core.orchestrator import trigger_workflow_execution
+from api.validator import validate_workflow
+from orchestrator.models import NodeStatus
+from orchestrator.trigger import trigger_workflow_execution
 import uuid
 
 router = APIRouter()
@@ -19,8 +20,8 @@ def submit_workflow(req: WorkflowRequest):
     redis_client.set(f"workflow:{execution_id}", req.model_dump_json())
 
     for node in req.dag.nodes:
-        redis_client.set(f"workflow:{execution_id}:node:{node.id}", "PENDING")
-    redis_client.set(f"workflow:{execution_id}:status", "PENDING")
+        redis_client.set(f"workflow:{execution_id}:node:{node.id}", NodeStatus.PENDING.value)
+    redis_client.set(f"workflow:{execution_id}:status", NodeStatus.PENDING.value)
 
     return {"execution_id": execution_id, "message": "Workflow accepted"}
 
@@ -29,7 +30,7 @@ def submit_workflow(req: WorkflowRequest):
 def trigger_workflow(execution_id: str):
     if not redis_client.exists(f"workflow:{execution_id}"):
         raise HTTPException(status_code=404, detail="Execution ID not found")
-
+    print(redis_client.get(f"workflow:{execution_id}"))
     trigger_workflow_execution(execution_id)
-    redis_client.set(f"workflow:{execution_id}:status", "RUNNING")
+    redis_client.set(f"workflow:{execution_id}:status", NodeStatus.RUNNING.value)
     return {"message": "Workflow triggered", "execution_id": execution_id}
