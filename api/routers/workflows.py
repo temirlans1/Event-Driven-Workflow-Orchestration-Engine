@@ -1,17 +1,16 @@
 from fastapi import APIRouter, HTTPException
-from clients.redis_client import redis_client
 from orchestrator.loader import load_workflow
-from orchestrator.state import get_all_node_outputs
+from orchestrator.state import get_all_node_outputs, get_workflow_status
 
 router = APIRouter()
 
 
 @router.get("/{execution_id}")
-def get_workflow_status(execution_id: str):
-    if not redis_client.exists(f"workflow:{execution_id}"):
-        raise HTTPException(status_code=404, detail="Workflow not found")
-
-    status = redis_client.get(f"workflow:{execution_id}:status")
+def get_workflow_status_endpoint(execution_id: str):
+    try:
+        status = get_workflow_status(execution_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
     return {
         "execution_id": execution_id,

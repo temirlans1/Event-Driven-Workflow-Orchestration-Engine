@@ -15,5 +15,5 @@ HANDLER_REGISTRY = {
 
 def get_handler(name: str):
     if name not in HANDLER_REGISTRY:
-        raise ValueError(f"Unknown handler: {name}")
+        return HANDLER_REGISTRY["noop"]
     return HANDLER_REGISTRY[name]
