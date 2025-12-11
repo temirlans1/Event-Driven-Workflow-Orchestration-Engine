@@ -1,6 +1,7 @@
 from logging_config import get_logger
 from clients.redis_client import redis_client
 from orchestrator.models import NodeStatus
+from orchestrator.redis_keys import RedisKeyTemplates
 
 
 logger = get_logger(__name__)
@@ -20,7 +21,7 @@ def set_workflow_status(execution_id: str, status: NodeStatus, error: str = None
         status,
         f" with error: {error}" if error else "",
     )
-    key = f"workflow:{execution_id}:status"
+    key = RedisKeyTemplates.WORKFLOW_STATUS.format(execution_id=execution_id)
     value = {"status": status.value}
     if error:
         value["error"] = error
@@ -40,7 +41,7 @@ def get_workflow_status(execution_id: str) -> NodeStatus:
         ValueError: If the workflow is missing or stored status is invalid.
     """
     logger.info("Retrieving workflow status for execution_id=%s", execution_id)
-    key = f"workflow:{execution_id}:status"
+    key = RedisKeyTemplates.WORKFLOW_STATUS.format(execution_id=execution_id)
     status = redis_client.get(key)
     if status is None:
         logger.error("Workflow status missing for execution_id=%s", execution_id)
@@ -61,7 +62,9 @@ def set_node_status(execution_id: str, node_id: str, status: NodeStatus, error: 
         status,
         f" with error: {error}" if error else "",
     )
-    key = f"workflow:{execution_id}:node:{node_id}"
+    key = RedisKeyTemplates.WORKFLOW_NODE.format(
+        execution_id=execution_id, node_id=node_id
+    )
     value = {"status": status.value}
     if error:
         value["error"] = error
@@ -82,7 +85,9 @@ def get_node_status(execution_id: str, node_id: str) -> NodeStatus:
         ValueError: If the node data is missing or invalid.
     """
     logger.info("Retrieving node status for %s/%s", execution_id, node_id)
-    key = f"workflow:{execution_id}:node:{node_id}"
+    key = RedisKeyTemplates.WORKFLOW_NODE.format(
+        execution_id=execution_id, node_id=node_id
+    )
     data = redis_client.get_json(key)
     if data is None:
         logger.error("Node status missing for %s/%s", execution_id, node_id)
@@ -109,14 +114,18 @@ def all_dependencies_succeeded(execution_id: str, dependencies: list) -> bool:
 def set_node_output(execution_id: str, node_id: str, output: dict):
     """Store the output produced by a workflow node."""
     logger.info("Setting output for node %s/%s", execution_id, node_id)
-    key = f"workflow:{execution_id}:node:{node_id}:output"
+    key = RedisKeyTemplates.WORKFLOW_NODE_OUTPUT.format(
+        execution_id=execution_id, node_id=node_id
+    )
     redis_client.set_json(key, output)
 
 
 def get_node_output(execution_id: str, node_id: str) -> dict:
     """Retrieve the stored output for a workflow node, or an empty dict."""
     logger.info("Retrieving output for node %s/%s", execution_id, node_id)
-    key = f"workflow:{execution_id}:node:{node_id}:output"
+    key = RedisKeyTemplates.WORKFLOW_NODE_OUTPUT.format(
+        execution_id=execution_id, node_id=node_id
+    )
     return redis_client.get_json(key) or {}
 
 

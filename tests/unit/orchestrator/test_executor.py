@@ -1,13 +1,16 @@
 import json
+import json
+
 from orchestrator.executor import execute_workflow
 from orchestrator.models import NodeStatus
 from orchestrator.task_queue import STREAM_NAME
 from clients.redis_client import redis_client
+from orchestrator.redis_keys import RedisKeyTemplates
 
 
 def test_executor_schedules_ready_node():
     execution_id = "exec1"
-    redis_client.set(f"workflow:{execution_id}", json.dumps({
+    redis_client.set(RedisKeyTemplates.WORKFLOW.format(execution_id=execution_id), json.dumps({
         "name": "DAG",
         "dag": {
             "nodes": [
@@ -16,8 +19,18 @@ def test_executor_schedules_ready_node():
             ]
         }
     }))
-    redis_client.set_json(f"workflow:{execution_id}:node:start", {"status": NodeStatus.PENDING.value})
-    redis_client.set_json(f"workflow:{execution_id}:node:end", {"status": NodeStatus.PENDING.value})
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="start"
+        ),
+        {"status": NodeStatus.PENDING.value},
+    )
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="end"
+        ),
+        {"status": NodeStatus.PENDING.value},
+    )
 
     execute_workflow(execution_id)
 
@@ -28,7 +41,7 @@ def test_executor_schedules_ready_node():
 
 def test_executor_schedules_ready_nodes_fan_out():
     execution_id = "exec1"
-    redis_client.set(f"workflow:{execution_id}", json.dumps({
+    redis_client.set(RedisKeyTemplates.WORKFLOW.format(execution_id=execution_id), json.dumps({
         "name": "DAG",
         "dag": {
             "nodes": [
@@ -38,9 +51,24 @@ def test_executor_schedules_ready_nodes_fan_out():
             ]
         }
     }))
-    redis_client.set_json(f"workflow:{execution_id}:node:start", {"status": NodeStatus.COMPLETED.value})
-    redis_client.set_json(f"workflow:{execution_id}:node:middle1", {"status": NodeStatus.PENDING.value})
-    redis_client.set_json(f"workflow:{execution_id}:node:middle2", {"status": NodeStatus.PENDING.value})
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="start"
+        ),
+        {"status": NodeStatus.COMPLETED.value},
+    )
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="middle1"
+        ),
+        {"status": NodeStatus.PENDING.value},
+    )
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="middle2"
+        ),
+        {"status": NodeStatus.PENDING.value},
+    )
 
     execute_workflow(execution_id)
 
@@ -52,7 +80,7 @@ def test_executor_schedules_ready_nodes_fan_out():
 
 def test_executor_does_not_schedule_if_dependencies_not_ready():
     execution_id = "exec2"
-    redis_client.set(f"workflow:{execution_id}", json.dumps({
+    redis_client.set(RedisKeyTemplates.WORKFLOW.format(execution_id=execution_id), json.dumps({
         "name": "DAG",
         "dag": {
             "nodes": [
@@ -61,8 +89,18 @@ def test_executor_does_not_schedule_if_dependencies_not_ready():
             ]
         }
     }))
-    redis_client.set_json(f"workflow:{execution_id}:node:a", {"status": NodeStatus.QUEUED.value})
-    redis_client.set_json(f"workflow:{execution_id}:node:b", {"status": NodeStatus.PENDING.value})
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="a"
+        ),
+        {"status": NodeStatus.QUEUED.value},
+    )
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="b"
+        ),
+        {"status": NodeStatus.PENDING.value},
+    )
 
     execute_workflow(execution_id)
 
@@ -72,11 +110,16 @@ def test_executor_does_not_schedule_if_dependencies_not_ready():
 
 def test_executor_does_not_schedule_if_already_running():
     execution_id = "exec3"
-    redis_client.set(f"workflow:{execution_id}", json.dumps({
+    redis_client.set(RedisKeyTemplates.WORKFLOW.format(execution_id=execution_id), json.dumps({
         "name": "DAG",
         "dag": {"nodes": [{"id": "x", "handler": "noop", "dependencies": []}]}
     }))
-    redis_client.set_json(f"workflow:{execution_id}:node:x", {"status": NodeStatus.RUNNING.value})
+    redis_client.set_json(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="x"
+        ),
+        {"status": NodeStatus.RUNNING.value},
+    )
     execute_workflow(execution_id)
 
     msgs = redis_client._redis.xrevrange(STREAM_NAME, count=1)

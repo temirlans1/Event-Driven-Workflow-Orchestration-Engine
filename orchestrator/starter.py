@@ -7,16 +7,19 @@ from orchestrator.executor import execute_workflow
 from orchestrator.loader import load_workflow
 from orchestrator.models import NodeStatus
 from orchestrator.state import get_node_status
+from orchestrator.redis_keys import RedisKeyTemplates
 
 logger = get_logger(__name__)
 
-WORKFLOW_KEY_PATTERN = re.compile(r"^workflow:([a-f0-9\-]+)$")
+WORKFLOW_KEY_PATTERN = re.compile(
+    RedisKeyTemplates.WORKFLOW.format(execution_id=r"([a-f0-9\-]+)")
+)
 
 
 def discover_active_workflow_ids() -> list[str]:
     """Return all execution IDs currently tracked as active in Redis."""
     logger.info("Discovering active workflow ids")
-    ids = redis_client.smembers("workflows:active")
+    ids = redis_client.smembers(RedisKeyTemplates.WORKFLOWS_ACTIVE)
     logger.info("Found %d active workflow ids", len(ids))
     return [id.decode() if isinstance(id, bytes) else id for id in ids]
 
@@ -58,8 +61,11 @@ def check_completion(execution_id: str) -> bool:
     """
     logger.info("Checking completion for workflow %s", execution_id)
     if workflow_is_complete(execution_id):
-        redis_client.set(f"workflow:{execution_id}:status", NodeStatus.COMPLETED)
-        redis_client.srem("workflows:active", execution_id)
+        redis_client.set(
+            RedisKeyTemplates.WORKFLOW_STATUS.format(execution_id=execution_id),
+            NodeStatus.COMPLETED,
+        )
+        redis_client.srem(RedisKeyTemplates.WORKFLOWS_ACTIVE, execution_id)
         logger.info("Workflow %s marked as complete and removed from active set", execution_id)
         return True
     logger.info("Workflow %s still active", execution_id)

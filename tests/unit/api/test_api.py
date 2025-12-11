@@ -3,6 +3,7 @@ import pytest
 
 from orchestrator.models import NodeStatus
 from clients.redis_client import redis_client
+from orchestrator.redis_keys import RedisKeyTemplates
 
 VALID_WORKFLOW = {
     "name": "Test DAG",
@@ -81,8 +82,18 @@ def test_get_results_after_mock_output(client):
     execution_id = post_resp.json()["execution_id"]
 
     # Manually inject mock output for testing
-    redis_client.set(f"workflow:{execution_id}:node:task1:output", json.dumps({"value": 123}))
-    redis_client.set(f"workflow:{execution_id}:node:task1", NodeStatus.COMPLETED.value)
+    redis_client.set(
+        RedisKeyTemplates.WORKFLOW_NODE_OUTPUT.format(
+            execution_id=execution_id, node_id="task1"
+        ),
+        json.dumps({"value": 123}),
+    )
+    redis_client.set(
+        RedisKeyTemplates.WORKFLOW_NODE.format(
+            execution_id=execution_id, node_id="task1"
+        ),
+        NodeStatus.COMPLETED.value,
+    )
 
     results = client.get(f"/workflows/{execution_id}/results")
     assert results.status_code == 200
