@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from api.routers import workflow, workflows
 from config import settings
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 app = FastAPI(
     title="Workflow Orchestration Engine",
@@ -15,4 +18,5 @@ app.include_router(workflows.router, prefix="/workflows", tags=["Workflows"])
 
 @app.get("/health")
 def health_check():
+    logger.info("Health check endpoint called")
     return {"status": "ok"}
