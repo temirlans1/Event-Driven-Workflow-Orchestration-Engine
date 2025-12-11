@@ -6,6 +6,7 @@ TEMPLATE_PATTERN = re.compile(r"\{\{\s*([\w_]+)\.([\w_]+)\s*\}\}")
 
 
 def resolve_templates(execution_id: str, config: dict) -> dict:
+    """Resolve templated values in a node's config using upstream outputs."""
     resolved = {}
 
     for key, value in config.items():

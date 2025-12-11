@@ -12,6 +12,7 @@ CONSUMER = "worker-1"
 
 
 def ensure_group_exists():
+    """Create the Redis consumer group for the worker stream if absent."""
     try:
         redis_client.xgroup_create(STREAM, GROUP, id="0", mkstream=True)
         print(f"[worker] Group '{GROUP}' created on stream '{STREAM}'")
@@ -23,6 +24,7 @@ def ensure_group_exists():
 
 
 def process_message(msg_id, fields):
+    """Handle a single stream message and execute its handler."""
     execution_id = fields["execution_id"]
     node_id = fields["node_id"]
     payload = json.loads(fields["payload"])
@@ -52,6 +54,7 @@ def process_message(msg_id, fields):
 
 
 def run_worker():
+    """Main worker loop: read tasks, execute handlers, and acknowledge."""
     ensure_group_exists()
 
     print("[worker] Worker is running...")
