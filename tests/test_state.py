@@ -4,7 +4,7 @@ from clients.redis_client import redis_client
 from orchestrator.state import (
     set_node_status,
     get_node_status,
-    all_dependencies_succeeded
+    all_dependencies_succeeded, set_node_output, get_node_output
 )
 from orchestrator.models import NodeStatus
 
@@ -44,3 +44,25 @@ def test_all_dependencies_succeeded_missing_node_defaults_to_not_succeeded():
         all_dependencies_succeeded("wf4", ["missing"])
 
     assert "Node not found" in str(exc.value)
+
+
+def test_set_and_get_node_output():
+    execution_id = "exec-out"
+    node_id = "node-A"
+    output = {
+        "result": "42",
+        "extra": True
+    }
+
+    set_node_output(execution_id, node_id, output)
+    stored = get_node_output(execution_id, node_id)
+
+    assert stored == output
+
+
+def test_get_node_output_returns_empty_if_missing():
+    execution_id = "exec-none"
+    node_id = "missing-node"
+
+    output = get_node_output(execution_id, node_id)
+    assert output == {}

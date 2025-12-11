@@ -1,15 +1,12 @@
 import pytest
-from orchestrator.registry import register_handler, get_handler
+from workers.registry import get_handler, HANDLER_REGISTRY
 
+def test_get_handler_returns_callable():
+    for handler_name in HANDLER_REGISTRY:
+        fn = get_handler(handler_name)
+        assert callable(fn)
 
-def test_register_and_get_handler():
-    @register_handler("custom_test")
-    def handler(node, eid):
-        return True
-
-    assert get_handler("custom_test") is handler
-
-
-def test_get_unregistered_handler_fails():
-    with pytest.raises(ValueError):
-        get_handler("missing_handler")
+def test_get_handler_raises_on_unknown():
+    with pytest.raises(ValueError) as exc:
+        get_handler("nonexistent")
+    assert "Unknown handler" in str(exc.value)

@@ -22,9 +22,25 @@ def get_node_status(execution_id: str, node_id: str) -> NodeStatus:
 
 
 def all_dependencies_succeeded(execution_id: str, dependencies: list) -> bool:
-    print(dependencies)
     for dep in dependencies:
         status = get_node_status(execution_id, dep)
         if status != NodeStatus.COMPLETED:
             return False
     return True
+
+
+def set_node_output(execution_id: str, node_id: str, output: dict):
+    key = f"workflow:{execution_id}:node:{node_id}:output"
+    redis_client.set_json(key, output)
+
+
+def get_node_output(execution_id: str, node_id: str) -> dict:
+    key = f"workflow:{execution_id}:node:{node_id}:output"
+    return redis_client.get_json(key) or {}
+
+
+def get_all_node_outputs(execution_id: str, nodes: list[str]):
+    return {
+        node_id: get_node_output(execution_id, node_id)
+        for node_id in nodes
+    }

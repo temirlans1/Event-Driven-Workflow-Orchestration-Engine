@@ -30,7 +30,6 @@ def submit_workflow(req: WorkflowRequest):
 def trigger_workflow(execution_id: str):
     if not redis_client.exists(f"workflow:{execution_id}"):
         raise HTTPException(status_code=404, detail="Execution ID not found")
-    print(redis_client.get(f"workflow:{execution_id}"))
     trigger_workflow_execution(execution_id)
     redis_client.set(f"workflow:{execution_id}:status", NodeStatus.RUNNING.value)
     return {"message": "Workflow triggered", "execution_id": execution_id}

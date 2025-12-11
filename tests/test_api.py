@@ -42,7 +42,6 @@ def test_submit_invalid_workflow_cycle(client):
 def test_trigger_valid_workflow(client):
     post_resp = client.post("/workflow", json=VALID_WORKFLOW)
     execution_id = post_resp.json()["execution_id"]
-    print(redis_client.get(f"workflow:{execution_id}"))
 
     response = client.post(f"/workflow/trigger/{execution_id}")
     assert response.status_code == 200
@@ -60,7 +59,7 @@ def test_get_status(client):
     client.post(f"/workflow/trigger/{execution_id}")
     status_resp = client.get(f"/workflows/{execution_id}")
     assert status_resp.status_code == 200
-    assert "nodes" in status_resp.json()
+    assert "status" in status_resp.json()
 
 
 def test_get_status_invalid_id(client):
